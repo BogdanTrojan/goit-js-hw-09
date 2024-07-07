@@ -2,34 +2,51 @@ const formData = {
   email: '',
   message: '',
 };
+
+const saveToLocalStorage = (key, value) => {
+  const jsonData = JSON.stringify(value);
+  localStorage.setItem(key, jsonData);
+};
+
+const loadFromLocalStorage = key => {
+  const json = localStorage.getItem(key);
+  try {
+    const data = JSON.parse(json);
+    return data;
+  } catch {
+    return json;
+  }
+};
+
 const form = document.querySelector('.feedback-form');
-const savedData = localStorage.getItem('feedback-form-state');
-if (savedData) {
-  const parsedData = JSON.parse(savedData);
-  formData.email = parsedData.email || '';
-  formData.message = parsedData.message || '';
-  form.elements.email.value = formData.email;
-  form.elements.message.value = formData.message;
-}
-form.addEventListener('input', handleInput);
-form.addEventListener('submit', handleSubmit);
+const formEvent = form.addEventListener('input', e => {
+  formData.email = form.elements.email.value.trim();
+  formData.message = form.elements.message.value.trim();
 
-function handleInput(event) {
-  formData[event.target.name] = event.target.value;
-  localStorage.setItem('feedback-form-state', JSON.stringify(formData));
-}
+  saveToLocalStorage('feedback-form-state', formData);
+});
 
-function handleSubmit(event) {
-  event.preventDefault();
+form.addEventListener('submit', e => {
+  e.preventDefault();
+  formData.email = form.elements.email.value;
+  formData.message = form.elements.message.value;
 
   if (!formData.email || !formData.message) {
     alert('Fill please all fields');
     return;
   }
-
-  console.log('Form data:', formData);
-  localStorage.removeItem('feedback-form-state');
-  formData.email = '';
-  formData.message = '';
+  console.log(formData);
   form.reset();
-}
+  localStorage.removeItem('feedback-form-state');
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  const savedData = loadFromLocalStorage('feedback-form-state');
+  if (savedData) {
+    formData.email = savedData.email || '';
+    formData.message = savedData.message || '';
+  }
+
+  form.elements.email.value = formData.email;
+  form.elements.message.value = formData.message;
+});
